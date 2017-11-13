@@ -1,0 +1,340 @@
+# PHASTA Version 1.6 Input File    -*-perl-*-
+# Here you will
+# find the default values for everything that is allowed to have a
+# default. Some things are not allowed to default and must be entered
+# in this file.  In most cases, the acceptable inputs also appear in
+# the input.config file. To add acceptable inputs you should only have
+# to modify:
+#     input_asci.cc :which matches the string and translates it to the 
+#                    parameter change. If it is a new parameter, you must
+#                    modify:
+#
+#                      common.h (to carry new parameter through code)
+#                      common_c.h (to carry the parameter from C to Fortran)
+#     
+##
+
+############### Default solver.inp file for two-phase simulations in PHASTA ####################
+# Standard solver.inp file for two phase flow simulations.
+# This file must be cloned from github for every new two-phase simulation setup.
+# The critical parameters are marked by [C] in front of them. Special attention must be observed while choosing these parameters.
+# Remove all [C]'s to run the simulation.
+# Default values, if possible, are specified to all parameters.
+
+
+SOLUTION CONTROL
+{
+##############Basic solver selection parameters######################
+     Equation of State: Incompressible
+     Turbulence Model:  DNS-WallFunc
+     Number of Timesteps: 10000     	
+#    Beginning Time:  0.0			
+     Time Step Size: 0.75e-06            					# Delt(1)
+     Time Step Based on Maximum CFL: False 					# iflag_cfl_dt
+
+     Maximum CFL Number Allowed: 1.0      				# CFLfl_limit 1st: whole domain cfl, 2nd: interface cfl
+#?   Solve Flow : True            							# solveflow         
+#    Solve Heat : False           							# solveheat     
+#?   Solve Scalars :   0          							# nsclrS
+     Solve Level Set : 2          							# iLSet
+															# total number of scalars must be <=4
+															# impl=10*logical(solflow)+nsclr*100 + 
+															# 1*logical(solveheat)  
+     Block Region: No										# Generate turbulence region blocking
+	  d2wall Calculation: Enable  							# Type 'Enable' to activate d2wall calculation
+########################################################################
+
+############Bubble tracking#####################################	 
+     Bubble Tracking: Enable     							# Type 'Enable' to use bubble tracking capability
+
+     Bubble Tracking Epsilon: 0.00015               			# epsilonBT with absolute value
+#?     Local Liquid Tracking: 0                   			# iClrLiq: 0 is off, 1 is on
+#?     Liquid Shell Inner Front Location: 1.0     			# The value of level set contours
+#?     Liquid Shell Outer Front Location: 3.0     			# Both are in the unit of epsilon
+#?     Break-up Tracking: 0         							# iBK: 0 is off, 1 is on
+#################################################################
+
+##############Coalescence Control parameters######################
+    Coalescence Control: Active      						# Type 'Enable' to activate Juns control
+#     Jun Fang Coalescence Control Verbosity: 1  			# Show the info of suspicious coalescence events
+#?     Jun Fang Coalescence Control Interface Distance: 8.0 	# control force is applied when interface distance < 8 epsilon
+     Coalescence Control Inverse Surface Tension: 1.0
+     Number of Estimated Coalescence Events: 20 			# coalest
+     Bubble Radius for Coalescence Control: 0.0008 	#bubrad
+	   Coalescence Time Control: Deactive
+	
+}
+
+MATERIAL PROPERTIES
+{
+###############Most used parameters for 2-phase flow##############################
+     Viscosity: 25.5609e-6 211.708e-3       #8.585E-05       				# fills datmat. Bulk, fraction
+     Density: 0.856305 233.565
+	 Scalar Diffusivity: 0.0 0.0    						# fills scdiff(1:nsclrS	 
+     Surface Tension Option: Yes							#isurf=0
+     Inverse Surface Tension: 18.942							# based on water S.T.
+#[C]    Bond Number: 0.1                                               #INverse surface tension and Bond number are mutually exclusive. DO NOT specify both!	 
+     Body Force Option: Vector    							# ibody=0 => matflag(5,n)
+#    Body Force Option: None								# ibody=1 => matflag(5,n)
+#    Body Force Option: Boussinesq 							# ibody=2 => matflag(5,n)
+#    Body Force Option: User e3source.f  					# ibody=3 => matflag(5,n)
+#    Body Force Option: Cooling Analytic  					# ibody=4 => matflag(5,n)
+#    Body Force Option: Cooling Initial Condition  			# ibody=5 => matflag(5,n)
+
+     Body Force: -9.81 0.0 0.0    							# (datmat(i,5,n),i=1,nsd)
+     Body Force Pressure Gradient: 744.41 0.0 0.0    			# (datmat(i,7,n),i=1,nsd)
+	 
+    Repellant Force Bubble Radius: 1.5   				# Repellant force on bubble from wall
+
+	 Ramp Properties: Yes                     				# Turns on/off the ramping of the density and viscosity
+    Target Viscosity: 211.708E-06   			            # Target second phase viscosity # air/water
+    Target Density:   233.565                       		# density  # air/water
+    Ramp Start Time : 0.0             					# Time Step when ramping will start / was started
+    Ramp Stop Time  : 0.00075             					# Time Step when ramping target values will be achieved
+################################################################
+
+
+##############Not very popular parameters######################
+#?   Shear Law: Constant Viscosity  						# ishear=0  => matflag(2,n)
+#?   Bulk Viscosity Law: Constant Bulk Viscosity 			# ibulk=0 => matflag(3,n)
+#?   Conductivity Law: Constant Conductivity 				# icond=0 => matflag(4,n)
+#?   Thermal Conductivity: 0.0 0.0 
+#?   Prandtl Number: 0.72  								# Compressible code sets diffusivity with this
+#?    Thermal Expansion Coefficient: 3.43E-3
+#?     Zero Mean Pressure : False  							# True causes pressure avg set to zero
+															# ONLY appropriate if no pressure BCs.
+#?    Rotating Frame of Reference: False
+#?    Rotating Frame of Reference Rotation Rate: 0. 0. 0.
+#?	Maximum Value of Sponge Parameter: 1.0
+#?	Inflow Cooling Sponge Ends at z: 12.0
+#?	Outflow Cooling Sponge Begins at z: 24.0
+#?	Radial Cooling Sponge Begins at r: 7.5
+#?   Sponge Growth Coefficient Outflow : .1
+#?   Sponge Growth Coefficient Inflow  : .5
+#?	Sponge for Continuity Equation : False
+#?   Sponge for x Momentum Equation : False
+#?   Sponge for y Momentum Equation : False
+#?   Sponge for z Momentum Equation : False
+#?   Sponge for Energy Equation : False
+}
+
+OUTPUT CONTROL
+{
+################Most used parameters######################
+     Meshing Tools Used: 1									# 1: Chef; 0: regular NSpre
+     Number of Timesteps between Restarts: 200				#replaces nout/ntout
+     Print Statistics: False          						#False=> ioform=1, True=> ioform=2
+	 Print Error Indicators: False       					# F ierrcalc = 0, T ierrcalc = 1
+#########################################################
+
+###############Not so popular parameters######################	 
+#    Verbosity Level: 3                        				#replaces necho
+#?   Print Wall Fluxes: False         						#No current action but it will come later
+#?   Print Residual at End of Step: False 					# T lstres=1 F lstres=0      
+#?   Print FieldView: False              					# outpar.iofieldv
+#?   Print ybar: False                   					# F ioybar = 0, T ioybar = 1
+#?   Print vorticity: False              					# F ivort = 0, T ivort = 1
+#?   Print Velocity Hessian: False       					# F ihessian = 0, T ihessian = 1 
+#?   Number of Error Smoothing Iterations: 3 				# ierrsmooth
+#?   Surface ID for Integrated Mass: -1   					# isrfIM
+#?   Number of Force Surfaces: 0         					# nsrfCM
+#?   Surface ID's for Force Calculation: NODEFAULT  		# nreadlist(j),j=1,nsrfCM
+#?   Data Block Format : binary 							#iotype, options 'binary','ascii'
+}
+
+LINEAR SOLVER
+{
+##########Linear solver selection#######################
+      Solver Type: ACUSIM                           		# iprjFlag=0 ipresPrjFlag=0
+#     Solver Type: ACUSIM with P Projection          		# iprjFlag=0 ipresPrjFlag=1
+#     Solver Type: ACUSIM with Velocity Projection  		# iprjFlag=1 ipresPrjFlag=0
+#     Solver Type: ACUSIM with Full Projection      		# iprjFlag=1 ipresPrjFlag=1
+#     The above 4 are for incompressible flow.
+
+#     The next two are for compresible flow. 
+#     Solver Type: GMRES EBE
+#     Solver Type: GMRES Matrix Free
+#################################################
+
+#     Number of GMRES Sweeps per Solve: 1      					# replaces nGMRES
+#     Number of Krylov Vectors per GMRES Sweep: 200           	# Keep this value uncommented. If Krylov space is too high the solver becomes slow and artificial interfaces are seen.
+	                                                                        # Also the value specified over here does not necessarily equal to the krylov vectors printed out by code. Unresolved mystery?
+     Tolerance on Momentum Equations: 1.0E-05                   # epstol(1)
+     Tolerance on Continuity Equations: 1.0E-04            	# epstol(7)
+     Tolerance on memLS NS Solver: 0.1                 		# epstol(8)
+     Number of Velocity Projection Vectors: 10  		# nPrjs. I don't know if this is the optimum value but both 10 or 20 seems to be working fine!
+     Scalar 1 Solver Tolerance: 1.0E-05
+     Scalar 2 Solver Tolerance: 1.0E-08
+     Tolerance on ACUSIM Pressure Projection: 1.0E-5 			
+     Minimum Number of Iterations per Nonlinear Iteration: 10  	# minIters
+     Maximum Number of Iterations per Nonlinear Iteration: 30 	# Keep this value 20 (or max 50) Increasing it increased the Kryolv space and also caused spurious interfaces. Another unresolve mystery.
+
+	 
+####################################################
+#     Number of Solves per Left-hand-side Formation: 1  			# nupdat/LHSupd(1)	 
+#     Number of Solves of Temperature per Left-hand-side Formation: 1 
+#     Temperature Solver Tolerance: 0.001
+#     Number of Solves of Scalar 1 per Left-hand-side Formation: 1 
+#     Number of Solves of Scalar 2 per Left-hand-side Formation: 1 
+#     Number of Solves of Scalar 3 per Left-hand-side Formation: 1 
+#     Number of Solves of Scalar 4 per Left-hand-side Formation: 1 
+#     Scalar 3 Solver Tolerance: 0.001
+#     Scalar 4 Solver Tolerance: 0.001
+#     Tolerance on ACUSIM Pressure Projection: 0.1           		# prestol 
+#     Velocity Delta Ratio :0.   									#utol deltol(1,1)  Stop factor for steady solve
+#     Pressure Delta Ratio :0.   									#ptol deltol(1,2)  Stop factor for steady solve
+#     Number of Velocity Projection Vectors: 10  					#nPrjs
+#     Number of Pressure Projection Vectors: 10  					#nPresPrjs
+#     ACUSIM Verbosity Level               : 0   					#iverbose
+}
+
+DISCRETIZATION CONTROL
+{
+############Jun's default parameters######################
+     Basis Function Order: 1                 						# ipord
+     Time Integration Rule: Second Order      						# 1st Order sets rinf(1) -1
+     Time Integration Rho Infinity: 1.0     						# rinf(1) Only used for 2nd order
+     Include Viscous Correction in Stabilization: True    			# if p=1 idiff=1
+     Quadrature Rule on Interior: 2           						# int(1)
+     Quadrature Rule on Boundary: 2           						# intb(1)
+     Tau Time Constant: 8.0                      					# dtsfct
+     Tau Time Constant for Scalars: 0.001         					# dtsfctsclr
+     Tau C Scale Factor: 0.1                   						# taucfct  best value depends # on Tau Matrix chosen
+     Scalar Discontinuity Capturing: 1 2       						# Sets DC=1 on second scalar
+################################################################
+
+##############################################################
+#     Predictor at Start of Step : Same Velocity  					# ipred=1 (more options later)
+#      Weak Form: SUPG # alternate is Galerkin only for compressible
+#     Flow Advection Form: Convective        # iconvflow=2
+#     Flow Advection Form: Conservative       # iconvflow=1
+#     Scalar Advection Form: Convective       # iconvsclr=2
+#    Scalar Advection Form: Conservative     # iconvsclr=1
+#     Use Conservative Scalar Convection Velocity: True
+#     Use Conservative Scalar Convection Velocity: False
+#     Tau Matrix: Diagonal-Shakib                #itau=0
+#     Tau Matrix: Diagonal-Franca               #itau=1
+#     Tau Matrix: Diagonal-Jansen(dev)          #itau=2
+#     Tau Matrix: Diagonal-Compressible         #itau=3
+#     Tau Matrix: Matrix-Mallet                 #itau=10
+#     Discontinuity Capturing: Off               # Sets IDC to 0 for now
+#    Discontinuity Capturing:  "DC-mallet"      #Sets IDC to 1
+#     Scalar Discontinuity Capturing: 0 0        #Sets idcsclr to [0 0], no DC 
+                                                #on any scalar
+# 	idcsclr(1)--> Type of DC (see flow), idcsclr(2)---> on which scalar DC acting
+#     Scalar Discontinuity Capturing: 1 1       #Sets DC=1 on first scalar
+
+
+                                                          # if p=2 idiff=2  
+#     Lumped Mass Fraction on Left-hand-side: 0.           # flmpl
+#     Lumped Mass Fraction on Right-hand-side: 0.          # flmpr
+#     Dump CFL: False                           #iCFLworst=0
+
+#     Number of Elements Per Block: 64        #ibksiz#
+#     Entropy Form of Pressure Constraint on Weight Space: 0  # 1 turns it on
+}
+
+
+TURBULENCE MODELING PARAMETERS  
+{
+	Turbulence Wall Model Type: Slip Velocity  #itwmod=0                RANSorLES
+
+#                                  lines below are only read if ||| is true
+#	Turn Off Source Terms for Scalars: False
+#	Decay Multiplier for Scalars : 1.0  (this number multiplies scalars each step)  
+#	Number of Homogenous Directions : 0
+#	Dynamic Model Type : Standard   # adds zero to iles       LES
+#	Dynamic Model Type : Bardina    # adds 10   to iles       LES
+#	Dynamic Model Type : Projection # adds 20   to iles       LES
+#       Filter Integration Rule: 1  #ifrule adds ifrule-1 to iles LES
+#        Double Filter : False  #Filter applied twice to create wide filter?
+#	Model Statistics: False #Collect statistics on model?
+#	Model/SUPG Dissipation : False # Get diss. due to model and SUPG stresses?
+
+#	DES Edge Length: NODEFAULT # shorter edges are pure les while twice longer edges are pure RANS, finally in between is a blend
+
+#
+# The following are models under development (at various stages of validation)
+#
+#	Dynamic Sub-Model Type: None
+#	Dynamic Sub-Model Type: DFWR  # dmc with dynamic filter width ratio
+#	Dynamic Sub-Model Type: SUPG  # dmc w/ SUPG interation
+#	Dynamic Sub-Model Type: ConsistentProj # Consistent projection filter dmc
+#	Projection Filter Type: Linear         # Projection onto lins. as the filter  
+#       Projection Filter Type: Quadratic      # Projection onto quads as the filter.
+#       	Lumping Factor for Filter : 0.5	       # Lumping factor for projection filter
+#	Turbulence Wall Model Type: Slip Velocity  #itwmod=1       RANSorLES
+#	Turbulence Wall Model Type: Effective Viscosity  #itwmod=2 RANSorLES
+#	Velocity Averaging Steps : 500. # wtavei= 1/this           RANSorLES
+#	Dynamic Model Averaging Steps : 500. # dtavei= 1/this      LES
+#  negative values to the two previous entries make their value ISTEP in code
+#  Anil...leave as any negative value
+#	Filter Width Ratio        : 3.  # fwr1                     LES
+#	Target Viscosity For Step NSTEP: 0 # uses linear ramp between start
+                                           # with a zero here the code disables
+                                           # that feature and holds value
+#	Limit u1 : 0. 0. 0. # switch min max   change switch from zero to activate
+#	Limit u2 : 0 0 0 
+#	Limit u3 : 0 0 0 
+#	Limit Pressure : 0 0 0 
+#	Limit Temperature : 0 0 0 
+#	Limit Scalar 1 : 0 0 0 
+#	Limit Scalar 2 : 0 0 0 
+#	Limit Scalar 3 : 0 0 0 
+#	Limit Scalar 4 : 0 0 0
+#   Number of Father Nodes: 0   # value of SONFATH
+}
+
+
+LEVEL SET MODELING PARAMETERS  
+{
+	Number of Elements Across Interface: 0.00018 				#epsilon_ls 
+	Number of Elements Across Interface for Redistancing: 0.00018 		#epsilon_lsd
+	Use spatial varying epsilon_ls: 0 					#i_spat_var_eps_flag: 0(off), 1(vol), 2(edge)
+	Apply Volume Constraint: True  						#ivconstraint=1
+     Pseudo Time step for Redistancing: 1e-06 				#dtset
+	Base pseudo time step for redistancing on CFL number: 2.0 		#dtlset_cfl
+	Adjust Redistance Velocity to Satisfy CFL Limit: 0.0 			#AdjRedistVelCFL. Keep this 0. This will change re-distancing local velocity if not 0
+                                                                                #Instabilities might occur if not 0
+	Explicit Solve for Scalar 1 Field: 0 					#iSolvLSSclr1 (0-implicit, 1-explicit)
+	Explicit Solve for Redistance Field: 0 					#iSolvLSSclr2 (0-implicit, 1-explicit)
+	Redistance loop: True 							#i_redist_loop_flag
+	Tolerance for redistance loop: 1e-08 					#redist_toler
+	Maximum number of redistance iterations: 10 				#i_redist_max_iter
+	
+#	Focus redistancing about interface: 0 					#i_focusredist (0-off, 1-on)
+	Check proximity of interface to large elements: False   		#i_check_prox = 1 (True), 0 (False)
+	Check proximity interface buffer thickness: 0.005       		#r_int_buffer
+	Check proximity maximum element size: 0.010             		#r_int_elem_size
+	Output level set gradient: False								#i_gradphi (=0 for False, =1 for True)	
+
+	Target Constant Void Fraction : 0.0070907
+	Void Fraction Control Coefficient: 0.1     				#vfcontrcoeff, for Jun's vf control. 0.01 is a good value
+	Use Void Fraction Control Coefficient Cap: 0 				#iuse_vfcont_cap, 1 for yes, 0 for no
+	Void Fraction Control Coefficient Cap: 0.00334  			#C_int_cap, interface vel adjustment coefficient cap 	
+	Initialize fraction phase velocity and pressure: 0
+
+	 Use Lagrange Multiplier Based Re-distancing: 0
+                Relaxation Factor1: 25.0
+                Relaxation Factor2: 0.0
+                Number of Time Steps between LM Re-distancing: 20
+                LMM freeze distance from interface: 0.000005
+                Periodic in x: 0
+                Lower x-limit of domain: -0.02025
+                Upper x-limit of domain: 0.02025
+                Periodic in y: 0
+                Lower y-limit of domain: -0.0063
+                Upper y-limit of domain: 0.0063
+                Periodic in z: 0
+                Lower z-limit of domain: -0.025
+                Upper z-limit of domain: 0.025
+                Global max value of distance field: 0.00414
+                Percent of domain to apply periodic BC: 0.0
+}
+
+
+STEP SEQUENCE
+{
+      Step Construction: 0 1 10 11 0 1 10 11 0 1 10 11 20 21
+#      Step Construction: 0 1 0 1
+}
