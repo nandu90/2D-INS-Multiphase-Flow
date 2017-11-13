@@ -1,0 +1,187 @@
+# PHASTA Version 1.5 Input File --*perl*--
+#
+#  Basic format is
+#
+#    Key Phrase  :  Acceptable Value (integer, double, logical, or phrase
+#                                     list of integers, list of doubles )
+#
+
+# To find the Key Phrases, first look in input.config.  There you will
+# find the default values for everything that is allowed to have a
+# default. Some things are not allowed to default and must be entered
+# in this file.  In most cases, the acceptable inputs also appear in
+# the input.config file. To add acceptable inputs you should only have
+# to modify:
+
+#     input_fform.cpp :which matches the string and translates it to the 
+#                    parameter change. If it is a new parameter, you must
+#                    modify:
+#
+#                      common.h (to carry new parameter through code)
+#                      common_c.h (to carry the parameter from C to Fortran)
+#     
+#
+# In case it is not clear by now, # allows you to comment either from the 
+# beginning of the line or to the right as shown below.
+#
+SOLUTION CONTROL 
+{
+     Equation of State: Incompressible     # sets ipress=-1 matflag(1,n) 
+     Number of Timesteps: 1000 #7000            # replaces nsteps(1) (ntseq wired =1)
+     Time Step Size: 2E-08 #0.00007 #0.0001 #0.00014 #updated by Yuqiao #0.000667     #7374 #368              # Delt(1)  ! Based on local CFL = 0.5 (mean would be around 0.17)
+     Time Step Based on Maximum CFL: True  #False # iflag_cfl_dt
+     Maximum CFL Number Allowed: 0.1      # CFLfl_limit
+#    Beginning Time:  -0.1                 # timestart
+     Solve Level Set : 2 #2                  # =>iLSet
+  #   Turbulence Model:  No-Model           # No-Model iturb=0, RANS =-1  LES=1
+     Turbulence Model:  DNS-WallFunc  
+}
+
+#CONTROL FORCE
+{
+     Bubble Tracking: Enable
+     Bubble Tracking Epsilon: 3.5E-5
+     Matts Control Force: 1     #iCForz: 0 is off, 1 is on
+     Apply to Whole Domain: 0   #iCForz_where: 0 apply control to only bubble, 1 apply control to whole domain
+                                # hist, curr, dx, xvel, dxvel, dx^2, dx^3, xvel^2, xvel^3, dy^2
+     
+     X Control Force Coefficients: 0.1 0.9 200.0 60.0 60.0 2.0 0.01 0.4 0.01 0.01
+    # X Control Force Coefficients: 0.2 0.8 200.0 60.0 60.0 2.0 4.0 0.0 0.0 0.0
+                                   #0.1  0.9  7200.0  720.0  0.0    72.0  144.0    0.0    0.0    0.0
+ 
+    # X Control Force Coefficients: 0.02  0.98  4.00e7  2.50e4   0.0    1.6e11   0.0    0.0    0.0    0.0
+                                # hist, curr, dy, yvel, dyvel, dy^2, dy^3, yvel^2, yvel^3
+     Y Control Force Coefficients: 0.2 0.8 5.0e6 5.0e4 0.0 5.0e6 0.0 0.0 0.0 #0.2  0.8  2.0  1.0   0.0    0.2   0.4   0.0    0.0
+   #  Y Control Force Coefficients: 0.02  0.98  4.00e7  2.50e4   0.0    1.6e11   0.0    0.0    0.0    0.0
+                                # hist, curr, dz, zvel, dzvel, dz^2, dz^3, zvel^2, zvel^3
+   #  Z Control Force Coefficients: 0.02  0.98  4.00e7  2.50e4   0.0    1.6e11   0.0    0.0    0.0    0.0
+     Z Control Force Coefficients: 0.2 0.8 5.0e6 5.0e4 0.0 5.0e6 0.0 0.0 0.0 #0.2  0.8  2.0  1.0  0.0    0.2   0.4    0.0    0.0
+     Y History Term Averaging Range: 500 #number of previous timesteps for averaging the y historical term
+     Shear Rate: 4307.69 #1/s
+     Velocity at Centerline: 13.77
+     
+}
+
+MATERIAL PROPERTIES
+{
+     Viscosity: 25.5609E-6 211.708E-6 #1.858E-04         #9E-04 1.964685E-05        # fills datmat (2 values REQUIRED if iLset=1) ! Re = 180 case parameters
+     Density: 0.856305 934.259                         #996.95 1.184  #996.5    		# ditto
+     Scalar Diffusivity: 0.0 0.0		# fills scdiff(1:nsclrS)
+     Body Force Option: Vector 	
+     Body Force: -9.81 0.0 0.0                   #-0.10,0,0   (datmat(i,5,n),i=1,nsd)               # Gravity will go here
+     Body Force Pressure Gradient: 9.856 0.0 0.0    #  (datmat(i,7,n),i=1,nsd)  # The force should go here
+     Inverse Surface Tension: 18.0 #8.5 #7.5                       # Inverse Surface Tension
+     Surface Tension Option: Yes                # isurf=1
+     Repellant Force Bubble Radius: 0.0  #0.5
+     Ramp Properties: No  #Yes, No	# Turns on/off the ramping of the density and viscosity
+     Target Viscosity: 1.845E-5       # Target second phase viscosity # air/water   70 ATM AIR CASE !
+     Target Density:  1.161     #                density  # air/water  70 ATM AIR CASE !
+     Target Bo: 6.5
+     Ramp Start Time: 8.6E-02             # Time when ramping will start / was started
+     Ramp Stop Time:  7.46E-01              # Time when ramping target values will be achieved
+}
+
+OUTPUT CONTROL
+{
+     Number of Timesteps between Restarts: 50    # replaces nout/ntout
+     Print Statistics: False                      # False=> ioform=1, True=> ioform=2
+     Print Error Indicators: False                # F ierrcalc = 0, T ierrcalc = 1
+#     Print ybar: True
+#     Number of Force Surfaces: 2         # nsrfCM
+#     Surface ID's for Force Calculation: 1 2  # nreadlist(j),j=1,nsrfCM
+}
+
+LINEAR SOLVER
+{
+#     Solver Type: memLS                           # iprjFlag=2 ipresPrjFlag=0
+     Solver Type: ACUSIM                           # iprjFlag=0 ipresPrjFlag=0
+#     Number of Solves per Left-hand-side Formation: 1  # nupdat/LHSupd(1)
+#     ACUSIM Verbosity Level : 1                       # iverbose
+
+     Tolerance on Momentum Equations: 1.0E-05 #0.001            # epstol(1)
+     Tolerance on Continuity Equations: 1.0E-04 #0.01            # epstol(7)
+     Tolerance on memLS NS Solver: 0.01 #0.05                 # epstol(8)
+     Number of Velocity Projection Vectors: 20 #10         #nPrjs
+     Tolerance on ACUSIM Pressure Projection: 1.0E-05 #0.01            # prestol
+     Scalar 1 Solver Tolerance: 1.0E-05 #1.0E-07 #0.1
+     Scalar 2 Solver Tolerance: 1.0E-08 #1.0E-07 #0.1
+#     updated by Yuqiao
+#     Tolerance on Momentum Equations: 0.001            # epstol(1)
+#     Tolerance on Continuity Equations: 0.01            # epstol(7)
+#     Tolerance on memLS NS Solver: 0.05                 # epstol(8)
+#     Number of Velocity Projection Vectors: 10         #nPrjs
+     Tolerance on ACUSIM Pressure Projection: 1.0E-5            # prestol 
+#     Scalar 1 Solver Tolerance: 0.1
+#     Scalar 2 Solver Tolerance: 0.1
+}
+
+DISCRETIZATION CONTROL
+{
+     Basis Function Order: 1                 # ipord
+     Time Integration Rule: Second Order    # Second Order sets rinf next
+     Time Integration Rho Infinity: 1.0    # rinf(1) Only used for 2nd order
+#      Time Integration Rule: First Order    # Second Order sets rinf next
+#     Time Integration Rho Infinity:-1     # rinf(1) Only used for 2nd order
+     Include Viscous Correction in Stabilization: True     # if p=1 idiff=1
+                                                           # if p=2 idiff=2  
+#     Tau Matrix: Diagonal-Compressible         #itau=3
+     Quadrature Rule on Interior: 2           #int(1)
+     Quadrature Rule on Boundary: 2           #intb(1)
+#     Lumped Mass Fraction on Left-hand-side: 1.0           # flmpl
+#     Lumped Mass Fraction on Right-hand-side: 1.0          # flmpr
+#     Tau Matrix: Diagonal-Franca               #itau=1
+     Tau Time Constant: 8.0                      #dtsfct ! Alisa's value
+     Tau Time Constant for Scalars: 0.001        #dtsfctsclr
+     Tau C Scale Factor: 0.1                   # taucfct  best value depends 
+     Scalar Discontinuity Capturing: 1 2       #Sets DC=1 on second scalar 
+     Number of Elements Per Block: 64        #ibksiz
+}
+
+TURBULENCE MODELING PARAMETERS  
+{ 
+         Turbulence Wall Model Type: Slip Velocity
+}
+
+#CARDIOVASCULAR MODELING PARAMETERS
+#{
+#        Time Varying Boundary Conditions From File: True # F itvn=0 T itvn=1
+#        Shift velocity: -0.196396 #shvejyf
+#}
+
+LEVEL SET MODELING PARAMETERS  
+{
+#(Only read if Solve Level Set is true=> iLS.ne.0)
+	Number of Elements Across Interface: 3.0E-5 #3.0 #2.8 #2.2 #1.333 #2.4 #2 #updated by Yuqiao  #0.0620 #epsilon_ls
+        Number of Elements Across Interface for Redistancing: 3.0E-5 #3.0 #2.8 #2.2 #1.333 #2.4 #2 #updated by Yuqiao  #0.0330 #a little higher than 0.0310 epsilon_lsd
+        Use spatial varying epsilon_ls: 0  #i_spat_var_eps_flag: 0(off), 1(vol), 2(edge)
+#
+        Apply Volume Constraint: True   #ivconstraint=0
+        Explicit Solve for Scalar 1 Field: 0 #iSolvLSSclr1 (0-implicit, 1-explicit)
+        Explicit Solve for Redistance Field: 0 #iSolvLSSclr2 (0-implicit, 1-explicit)
+        Pseudo Time step for Redistancing: 0.5E-07 #updated by Yuqiao  #0.021  #1750 #dtlset was 0.00005
+	Base pseudo time step for redistancing on CFL number: 2.0  #65 #dtlset_cfl & i_dtlset_cfl, only active if non-zero
+        Adjust Redistance Velocity to Satisfy CFL Limit: 0.0 #AdjRedistVelCFL (0-off, nonzero-on)
+        Redistance loop: True      #i_redist_loop_flag
+        Tolerance for redistance loop: 1.0E-8   #0.00000003       #redist_toler was 1e-19 (now 1e-19)
+        Maximum number of redistance iterations: 10  #7  i_redist_max_iter
+#
+        Check proximity of interface to large elements: False    #i_check_prox = 1 (True), 0 (False)
+	Check proximity interface buffer thickness: 0.040       #r_int_buffer
+	Check proximity maximum element size: 0.040             #r_int_elem_size
+	Output level set gradient: False		#i_gradphi (=0 for False, =1 for True)
+	Target Constant Void Fraction: 0.00071145   # Should ne inactive if negative
+        Void Fraction Control Coefficient: 1.0      #vfcontrcoeff, for Jun's vf control
+        Use Void Fraction Control Coefficient Cap: 0 #iuse_vfcont_cap, 1 for yes, 0 for no
+        Void Fraction Control Coefficient Cap: 0.003  #C_int_cap, interface vel adjustment coefficient cap
+
+}
+
+STEP SEQUENCE 
+{
+      Step Construction: 0 1 10 11 0 1 10 11 20 21 #updated by Yuqiao  0 1 10 11 0 1 10 11 20 21
+#      Step Construction: 0 1 10 11 20 21
+  #    Step Construction: 0 1 0 1
+}
+
+
+
